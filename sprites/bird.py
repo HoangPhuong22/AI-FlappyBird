@@ -17,7 +17,8 @@ class Bird(pygame.sprite.Sprite):
         self.rect.center = (x, y) # Vị trí của chim ban đầu
         self.gravity = 0 # Trọng lực
         self.clicked = False # Biến kiểm tra chuột
-    
+        self.path = []
+        
     def draw(self, screen):
         bird_group = pygame.sprite.Group()
         bird_group.add(self)
@@ -25,7 +26,7 @@ class Bird(pygame.sprite.Sprite):
     def fly(self):
         # Chuyển động chim
         self.counter += 1 # Biến đếm vỗ cánh của chim
-        flap_cooldown = 10
+        flap_cooldown = 4
         if self.counter > flap_cooldown: # 10 khung hình cập nhật 1 lần ảnh
             self.counter = 0
             self.index += 1
@@ -34,6 +35,23 @@ class Bird(pygame.sprite.Sprite):
         # Cập nhật lại image
         self.image = self.images[self.index]
     #Cập nhật
+    def updateAI(self):
+        if self.path:
+            # Cập nhật vị trí của Bird dựa trên đường đi
+            next_position = self.path.pop(0)
+            # self.rect.y = next_position[1]
+            self.gravity = next_position[4] 
+            self.rect.y = next_position[1]
+            self.fly()
+            self.image = pygame.transform.rotate(self.images[self.index], self.gravity * -2)
+        else:
+            self.gravity += 0.3
+            if self.gravity > 8: #Gán bằng 8 ránh trường hợp gravity quá lớn
+                self.gravity = 8
+            if self.rect.bottom < 540:
+                # Chưa chạm đất thì rơi
+                self.rect.y += (self.gravity)
+                
     def update(self, flying, gameOver):
         #Cập nhật trọng lực của chim
 
@@ -55,17 +73,7 @@ class Bird(pygame.sprite.Sprite):
             # Chuột không được nhấn thì reset biến chuột về False
             if pygame.mouse.get_pressed()[0] == 0:
                 self.clicked = False
-                
-            # # Chuyển động chim
-            # self.counter += 1 # Biến đếm vỗ cánh của chim
-            # flap_cooldown = 10
-            # if self.counter > flap_cooldown: # 10 khung hình cập nhật 1 lần ảnh
-            #     self.counter = 0
-            #     self.index += 1
-            #     if self.index >= len(self.images): # Lớn hơn số ảnh thì về 0
-            #         self.index = 0
-            # # Cập nhật lại image
-            # self.image = self.images[self.index]
+
             self.fly()
             # Xoay chim theo hướng nhảy
             self.image = pygame.transform.rotate(self.images[self.index], self.gravity * -2)

@@ -63,7 +63,6 @@ class Bird(pygame.sprite.Sprite):
             # self.rect.y = next_position[1]
             self.vel = next_position[4] 
             self.rect.y = next_position[1]
-            print(self.vel)
             self.counter += 1
             flap_cooldown = 4
             if self.counter > flap_cooldown:

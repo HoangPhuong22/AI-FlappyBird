@@ -13,8 +13,14 @@ class Menu:
         self.menu_images = [self.start_img, self.music_img, self.exit_img]
         self.selected_item = 0
         self.scale_factor = 1.1  # Tỷ lệ để tăng kích thước ảnh được chọn
-
+        # Font và văn bản
+        self.font = pygame.font.SysFont('Roboto', 24)
+        self.start_text = "Click mui ten len xuong va enter"
+        
     def draw(self, screen):
+        text_surface = self.font.render(self.start_text, True, (0, 0, 255))
+        # Vẽ văn bản trên nút start, ở vị trí 1/3 chiều cao màn hình
+        screen.blit(text_surface, (200, 200))
         for i, img in enumerate(self.menu_images):
             img_rect = img.get_rect(center=(self.screen_width / 2, self.screen_height / 2 + i * 70))
             if i == self.selected_item:

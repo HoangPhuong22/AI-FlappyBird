@@ -22,19 +22,24 @@ class GameOptions:
         self.arrow_right_image = pygame.image.load('./img/arrow_right.png')
 
         # Chế độ chơi
-        self.play_modes = ["Play Alone", "Play with AI", "Solo with AI"]
+        self.play_modes = [1, 2]
         self.play_mode = 0
         self.play_mode_images = [pygame.image.load('./img/choi1minh.png'),
-                                 pygame.image.load('./img/AItuchoi.png'),
-                                 pygame.image.load('./img/solovoiAI.png')]
+                                 pygame.image.load('./img/AItuchoi.png'),]
         
         # Chọn bird
-        self.bird_types = ["bird_blue", "bird_green", "bird_yellow"]  
+        self.bird_types = ["bird_pink", "bird_green", "bird_yellow", "bird_super", "bird_blue"]  
         self.bird_objects = [Bird(0, 0, bird_type) for bird_type in self.bird_types]  # Tạo đối tượng Bird cho mỗi loại
         self.bird_index = 0
 
+        self.font = pygame.font.SysFont('Roboto', 24)
+        self.text1 = "Click mui ten len xuong de chon muc do, click 2 nut A và S chon chim"
+        self.text2 = "click mui ten trai phai de chon cach choi, enter de vao game"
     def draw(self, screen):
-    # Draw difficulty options and "Back" button with scaling for selected item
+        text_surface = self.font.render(self.text1, True, (0, 0, 255))
+        screen.blit(text_surface, (50, 100))
+        text_surface = self.font.render(self.text2, True, (0, 0, 255))
+        screen.blit(text_surface, (50, 150))
         for i, image in enumerate(self.button_images):
             button_rect = image.get_rect(center=(self.screen_width // 4, 200 + i * 100))
             if i == self.selected_item:
