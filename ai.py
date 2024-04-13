@@ -2,7 +2,7 @@ from queue import Queue
 
 def gen_path(bird, pipe, velocity):
     start = (bird.rect.x, bird.rect.y, pipe.rect.x, pipe.rect.bottomleft[1], velocity)
-    print(bird.rect.x, bird.rect.y, pipe.rect.x, pipe.rect.bottomleft[1], velocity)
+    # print(bird.rect.x, bird.rect.y, pipe.rect.x, pipe.rect.bottomleft[1], velocity)
     q = Queue()
     q.put(start)
     parent = {start: None}

@@ -18,6 +18,13 @@ class Bird(pygame.sprite.Sprite):
         self.gravity = 0 # Trọng lực
         self.clicked = False # Biến kiểm tra chuột
         self.path = []
+        self.delay = 0
+        
+        self.wing_music = pygame.mixer.Sound('./music/wing.mp3')
+        self.hit_music = pygame.mixer.Sound('./music/hit.mp3')
+        self.point_music = pygame.mixer.Sound('./music/point.mp3')
+        self.die_music = pygame.mixer.Sound('./music/die.mp3')
+        self.swooshing_music = pygame.mixer.Sound('./music/swooshing.mp3')
         
     def draw(self, screen):
         bird_group = pygame.sprite.Group()
@@ -35,13 +42,19 @@ class Bird(pygame.sprite.Sprite):
         # Cập nhật lại image
         self.image = self.images[self.index]
     #Cập nhật
-    def updateAI(self):
+    def updateAI(self, gameOver, music_one):
         if self.path:
             # Cập nhật vị trí của Bird dựa trên đường đi
             next_position = self.path.pop(0)
             # self.rect.y = next_position[1]
             self.gravity = next_position[4] 
+            temp = self.rect.y
             self.rect.y = next_position[1]
+            self.delay += 1
+            if self.rect.y < (temp - 5) and not gameOver and music_one and self.delay > 5: 
+                self.wing_music.play()
+                self.delay = 0
+                
             self.fly()
             self.image = pygame.transform.rotate(self.images[self.index], self.gravity * -2)
         else:
@@ -52,11 +65,12 @@ class Bird(pygame.sprite.Sprite):
                 # Chưa chạm đất thì rơi
                 self.rect.y += (self.gravity)
                 
-    def update(self, flying, gameOver):
+    def update(self, flying, gameOver, music_on):
         #Cập nhật trọng lực của chim
 
         if flying:
             self.gravity += 0.3
+                
             if self.gravity > 8: #Gán bằng 8 ránh trường hợp gravity quá lớn
                 self.gravity = 8
             if self.rect.bottom < 540:

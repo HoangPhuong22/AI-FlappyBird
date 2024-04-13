@@ -62,7 +62,17 @@ class Game:
         # AI
         self.find_next_pipe = True
         self.mode = 1
-        
+        #
+        # Chen nhac
+        #
+        self.wing_music = pygame.mixer.Sound('./music/wing.mp3')
+        self.hit_music = pygame.mixer.Sound('./music/hit.mp3')
+        self.point_music = pygame.mixer.Sound('./music/point.mp3')
+        self.die_music = pygame.mixer.Sound('./music/die.mp3')
+        self.music_on = True
+        #
+        #
+        #
     def get_next_pipe(self):
         for pipe in self.pipe_group:
             if self.bird.rect.topright[0] < pipe.rect.left:
@@ -91,6 +101,9 @@ class Game:
                 self.options_active = True  # Kích hoạt màn hình chọn options
             elif self.menu_selection == "exit":
                 self.running = False
+            elif self.menu_selection == "music":
+                self.music_on = not self.music_on
+                
         elif self.options_active:
             selection, mode, bird_game = self.game_options.handle_event(event)
             if selection:
@@ -108,6 +121,8 @@ class Game:
         else:
             if event.type == pygame.MOUSEBUTTONDOWN and self.flying == False and self.gameOver == False:
                 self.flying = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if not self.gameOver and self.music_on: self.wing_music.play()
     
     def randomPipe(self):
         #Vẽ Pipe
@@ -123,9 +138,10 @@ class Game:
         
     def update(self):
         self.ground.update(self.speed, self.gameOver)
-        if(self.mode == 1): self.bird_group.update(self.flying, self.gameOver)
-        elif self.mode == 2: self.bird.updateAI()
+        if(self.mode == 1): self.bird_group.update(self.flying, self.gameOver, self.music_on)
+        elif self.mode == 2: self.bird.updateAI(self.gameOver, self.music_on)
         
+            
         if self.find_next_pipe and self.flying == True:
             next_pipe = self.get_next_pipe()
             if next_pipe:
@@ -139,11 +155,13 @@ class Game:
         if self.flying:
             # Va chạm chim với chướng ngại vật và trần
             if pygame.sprite.groupcollide(self.bird_group, self.pipe_group, False, False) or self.bird.rect.top < 0:
+                    if not self.gameOver and self.music_on: self.hit_music.play()
                     self.gameOver = True
                     
             # Va chạm chim với đất
             if self.bird.rect.bottom >= 535:
                 self.flying = False
+                if not self.gameOver and self.music_on: self.hit_music.play()
                 self.gameOver = True
     
     def draw_score(self):
@@ -155,6 +173,7 @@ class Game:
             if self.pass_pipe:
                 if self.bird_group.sprites()[0].rect.left > self.pipe_group.sprites()[0].rect.right:
                     self.score += 1
+                    if not self.gameOver and self.music_on: self.point_music.play()
                     self.pass_pipe = False
                     self.find_next_pipe = True
             
@@ -178,6 +197,6 @@ class Game:
                 self.handle_event(event)
             pygame.display.update()  # Cập nhật toàn bộ nội dung cửa sổ
             
-if __name__ == "__main__":
+if __name__ == "__main__":#
     game = Game()
     game.run()
