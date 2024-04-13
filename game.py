@@ -8,6 +8,7 @@ from sprites.background import Background
 from sprites.utils import DrawText
 from menu import Menu
 from game_option import GameOptions
+from buttonreset import ResetMenu
 from ai import gen_path
 
 class Game:
@@ -49,6 +50,7 @@ class Game:
         self.pipe_time = 1500
         self.pipe_last_time = self.time_now - self.pipe_time
         self.pass_pipe = False
+        self.gap = 120
         #
         # Menu
         self.menu = Menu(self.screen_width, self.screen_height)
@@ -58,6 +60,11 @@ class Game:
         # Game options
         self.game_options = GameOptions(self.screen_width, self.screen_height)
         self.options_active = False  # Kiểm soát việc hiển thị cửa sổ options
+        self.sinhpath = False
+        #
+        #Reset menu
+        self.reset_game = ResetMenu(self.screen_width, self.screen_height)
+        self.reset_activate = False
         #
         # AI
         self.find_next_pipe = True
@@ -65,10 +72,14 @@ class Game:
         #
         # Chen nhac
         #
+        self.intro = True
         self.wing_music = pygame.mixer.Sound('./music/wing.mp3')
         self.hit_music = pygame.mixer.Sound('./music/hit.mp3')
         self.point_music = pygame.mixer.Sound('./music/point.mp3')
         self.die_music = pygame.mixer.Sound('./music/die.mp3')
+        self.tatnhac_music = pygame.mixer.Sound('./music/tatnhac.mp3')
+        self.batnhac_music = pygame.mixer.Sound('./music/batnhac.mp3')
+        self.intro_music = pygame.mixer.Sound('./music/intro.mp3')
         self.music_on = True
         #
         #
@@ -84,6 +95,8 @@ class Game:
         self.background.draw(self.screen)
         self.pipe_group.draw(self.screen)
         self.ground.draw(self.screen)
+        if not self.options_active and not self.menu_active and self.gameOver:
+            self.reset_game.draw(self.screen)
         if self.menu_active:
             self.menu.draw(self.screen)
         elif self.options_active:
@@ -101,8 +114,10 @@ class Game:
                 self.options_active = True  # Kích hoạt màn hình chọn options
             elif self.menu_selection == "exit":
                 self.running = False
-            elif self.menu_selection == "music":
+            elif self.menu_selection == "music": 
                 self.music_on = not self.music_on
+                if self.music_on: self.batnhac_music.play()
+                else: self.tatnhac_music.play()
                 
         elif self.options_active:
             selection, mode, bird_game = self.game_options.handle_event(event)
@@ -111,13 +126,39 @@ class Game:
                     self.options_active = False
                     self.menu_active = True
                 else:
+                    if selection == "Easy":
+                        self.gap = 140
+                    elif selection == "Medium":
+                        self.gap = 130
+                    elif selection == "Hard":
+                        self.gap = 120
                     # Xử lý lựa chọn mức độ khó và bắt đầu trò chơi
                     self.options_active = False
                     self.bird = (Bird(100, int(self.screen_height / 2), bird_game))
                     self.bird_group.add(self.bird)
                     self.mode = mode
                     if(self.mode == 2): self.flying = True
+                    self.sinhpath = True
                     # Set difficulty here based on selection
+        elif self.reset_activate:
+            selection = self.reset_game.handle_event(event)
+            if selection == "menu":
+                self.reset_activate = False
+                self.gameOver = False
+                self.score = 0
+                self.bird_group.empty()
+                self.pipe_group.empty()
+                self.menu_active = True
+            elif selection == "tieptuc":
+                self.reset_activate = False
+                self.gameOver = False
+                self.score = 0
+                self.bird_group.empty()
+                self.pipe_group.empty()
+                self.bird = (Bird(100, int(self.screen_height / 2), "bird_pink"))
+                self.bird_group.add(self.bird)
+                self.flying = True
+                self.find_next_pipe = True
         else:
             if event.type == pygame.MOUSEBUTTONDOWN and self.flying == False and self.gameOver == False:
                 self.flying = True
@@ -126,7 +167,7 @@ class Game:
     
     def randomPipe(self):
         #Vẽ Pipe
-        gap = 120
+        gap = self.gap
         self.time_now = pygame.time.get_ticks()
         if self.time_now - self.pipe_last_time > self.pipe_time and self.flying == True:
             self.pipe_height = random.randint(-100, 100)
@@ -141,6 +182,12 @@ class Game:
         if(self.mode == 1): self.bird_group.update(self.flying, self.gameOver, self.music_on)
         elif self.mode == 2: self.bird.updateAI(self.gameOver, self.music_on)
         
+        if self.sinhpath and self.mode == 2:
+            next_pipe = self.get_next_pipe()
+            path = gen_path(self.bird, next_pipe, self.bird.gravity)
+            print('Path: ',len(path))
+            self.bird.path = path
+            self.sinhpath = False
             
         if self.find_next_pipe and self.flying == True:
             next_pipe = self.get_next_pipe()
@@ -163,7 +210,7 @@ class Game:
                 self.flying = False
                 if not self.gameOver and self.music_on: self.hit_music.play()
                 self.gameOver = True
-    
+        if self.gameOver: self.reset_activate = True
     def draw_score(self):
         if len(self.pipe_group) > 0:
             if self.bird_group.sprites()[0].rect.left > self.pipe_group.sprites()[0].rect.left\
@@ -184,6 +231,10 @@ class Game:
     def run(self):
         while self.running:
             self.clock.tick(self.fps)
+            if self.intro:
+                self.intro_music.play()
+                self.intro = False
+            
             self.randomPipe() # Vẽ pipe
             self.update() # Cập nhật các thành phần
             self.draw()    # Vẽ các thành phần game
