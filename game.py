@@ -197,6 +197,7 @@ class Game:
                 self.bird.path = path
                 self.find_next_pipe = False
         self.pipe_group.update(self.gameOver)
+        self.background.update(self.gameOver)
 
     def collection(self):
         if self.flying:
